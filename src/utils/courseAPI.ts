@@ -1,44 +1,40 @@
-import { useMutation } from '@tanstack/react-query'
-import type { AxiosResponse } from 'axios'
-import { axiosInstance } from '../utils/axios'
+import { useMutation } from "@tanstack/react-query";
+import type { AxiosResponse } from "axios";
+import { axiosInstance } from "../utils/axios";
 
 /* -------------------- Types -------------------- */
 export interface Course {
-  _id: string
-  title: string
-  duration: string
+  _id: string;
+  title: string;
+  duration: string;
 }
 
 export interface CreateCoursePayload {
-  title: string
-  duration: string
+  title: string;
+  duration: string;
 }
 
 export interface UpdateCoursePayload {
-  courseId: string
-  courseData: CreateCoursePayload
+  courseId: string;
+  courseData: CreateCoursePayload;
 }
 
 /* -------------------- API Functions -------------------- */
 
 // Get all courses
-export const getAllCourses = async (): Promise<AxiosResponse<{ data: Course[] }>> => {
-  return axiosInstance.get<{ data: Course[] }>('/getcourses')
-}
+export const getAllCourses = async (): Promise<Course[]> => {
+  const res = await axiosInstance.get<{ data: Course[] }>(
+    "/courses/getcourses"
+  );
+  return res.data.data;
+};
 
 // Create course
 export const createCourse = async (
   courseData: CreateCoursePayload
 ): Promise<AxiosResponse<Course>> => {
-  return axiosInstance.post<Course>('/createcourses', courseData)
-}
-
-// Get course by ID
-export const getCourseById = async (
-  courseId: string
-): Promise<AxiosResponse<Course>> => {
-  return axiosInstance.get<Course>(`/getcourses/${courseId}`)
-}
+  return axiosInstance.post<Course>("/courses/createcourses", courseData);
+};
 
 // Update course
 export const updateCourse = async ({
@@ -46,30 +42,37 @@ export const updateCourse = async ({
   courseData,
 }: UpdateCoursePayload): Promise<AxiosResponse<Course>> => {
   return axiosInstance.put<Course>(
-    `/updatecourses/${courseId}`,
+    `/courses/updatecourses/${courseId}`,
     courseData
-  )
-}
+  );
+};
 
 // Delete course
 export const deleteCourse = async (
   courseId: string
 ): Promise<AxiosResponse<{ message: string }>> => {
-  return axiosInstance.delete(`/deletecourses/${courseId}`)
-}
+  return axiosInstance.delete(`/courses/deletecourses/${courseId}`);
+};
 
 /* -------------------- React Query Hooks -------------------- */
 
 export const useCreateCourse = () => {
   return useMutation<AxiosResponse<Course>, unknown, CreateCoursePayload>({
-    mutationKey: ['createCourse'],
+    mutationKey: ["createCourse"],
     mutationFn: createCourse,
-  })
-}
+  });
+};
+
+export const useUpdateCourse = () => {
+  return useMutation<AxiosResponse<Course>, unknown, UpdateCoursePayload>({
+    mutationKey: ["updateCourse"],
+    mutationFn: updateCourse,
+  });
+};
 
 export const useDeleteCourse = () => {
   return useMutation<AxiosResponse<{ message: string }>, unknown, string>({
-    mutationKey: ['deleteCourse'],
+    mutationKey: ["deleteCourse"],
     mutationFn: deleteCourse,
-  })
-}
+  });
+};

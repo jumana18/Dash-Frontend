@@ -1,10 +1,15 @@
-import React, { useState } from 'react';
-import { Table, Button, Modal, Form, Input, message, Popconfirm } from 'antd';
-import { useCreateCourse, getAllCourses, useDeleteCourse } from '../utils/courseAPI';
-import { useQuery } from '@tanstack/react-query';
-import type { ColumnsType } from 'antd/es/table';
+import React, { useState } from "react";
+import { Table, Button, Modal, Form, Input, message, Popconfirm } from "antd";
+import {
+  useCreateCourse,
+  useDeleteCourse,
+  useUpdateCourse,
+  getAllCourses,
+} from "../utils/courseAPI";
+import { useQuery } from "@tanstack/react-query";
+import type { ColumnsType } from "antd/es/table";
 
-// -------------------- Types --------------------
+/* -------------------- Types -------------------- */
 interface Course {
   _id: string;
   title: string;
@@ -16,85 +21,125 @@ interface FormValues {
   duration: string;
 }
 
-// -------------------- Component --------------------
+/* -------------------- Component -------------------- */
 const CoursePage: React.FC = () => {
-  // Fetch courses
-  const { data, isLoading, refetch } = useQuery<{ data: Course[] }>({
-    queryKey: ['getCourses'],
+  /* ---------- Fetch Courses ---------- */
+  const { data, isLoading, refetch } = useQuery<Course[]>({
+    queryKey: ["getCourses"],
     queryFn: getAllCourses,
   });
 
+  /* ---------- Mutations ---------- */
   const { mutate: createCourse } = useCreateCourse();
+  const { mutate: updateCourse } = useUpdateCourse();
   const { mutate: deleteCourse } = useDeleteCourse();
 
-  // Modal state
+  /* ---------- State ---------- */
   const [openModal, setOpenModal] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [form] = Form.useForm<FormValues>();
 
-  // -------------------- Modal submit --------------------
-  const onCreateFormSubmit = (values: FormValues) => {
-    console.log("FORM VALUES:", values);
-
-    createCourse(values, {
-      onSuccess: (res) => {
-        console.log("SUCCESS:", res);
-        form.resetFields();
-        setOpenModal(false);
-        refetch();
-      },
-      onError: (err: any) => {
-        console.log("ERROR:", err.response?.data || err.message);
-      },
-    });
+  /* ---------- Submit (Create / Update) ---------- */
+  const onFormSubmit = (values: FormValues) => {
+    if (editingCourse) {
+      // UPDATE
+      updateCourse(
+        {
+          courseId: editingCourse._id,
+          courseData: values,
+        },
+        {
+          onSuccess: () => {
+            message.success("Course updated successfully");
+            setEditingCourse(null);
+            setOpenModal(false);
+            form.resetFields();
+            refetch();
+          },
+        }
+      );
+    } else {
+      // CREATE
+      createCourse(values, {
+        onSuccess: () => {
+          message.success("Course created successfully");
+          setOpenModal(false);
+          form.resetFields();
+          refetch();
+        },
+      });
+    }
   };
 
+  /* ---------- Delete ---------- */
   const handleDelete = (id: string) => {
     deleteCourse(id, {
       onSuccess: () => {
-        message.success('Course deleted successfully');
+        message.success("Course deleted successfully");
         refetch();
       },
-      onError: (err: any) => {
-        console.log(err);
-        message.error('Delete failed');
-      },
+      onError: () => message.error("Delete failed"),
     });
   };
 
-  // -------------------- Table columns --------------------
+  /* ---------- Open Update Modal ---------- */
+  const openUpdateModal = (course: Course) => {
+    setEditingCourse(course);
+    form.setFieldsValue({
+      title: course.title,
+      duration: course.duration,
+    });
+    setOpenModal(true);
+  };
+
+  /* ---------- Table Columns ---------- */
   const columns: ColumnsType<Course> = [
-    { title: 'Title', dataIndex: 'title', key: 'title' },
-    { title: 'Duration', dataIndex: 'duration', key: 'duration' },
+    { title: "Title", dataIndex: "title", key: "title" },
+    { title: "Duration", dataIndex: "duration", key: "duration" },
     {
-      title: 'Action',
-      key: 'action',
+      title: "Action",
+      key: "action",
       render: (_, record) => (
-        <Popconfirm
-          title="Delete course?"
-          onConfirm={() => handleDelete(record._id)}
-          okText="Yes"
-          cancelText="No"
-        >
-          <Button danger size="small">
-            Delete
+        <>
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => openUpdateModal(record)}
+            style={{ marginRight: 8 }}
+          >
+            Edit
           </Button>
-        </Popconfirm>
+
+          <Popconfirm
+            title="Delete course?"
+            onConfirm={() => handleDelete(record._id)}
+          >
+            <Button danger size="small">
+              Delete
+            </Button>
+          </Popconfirm>
+        </>
       ),
     },
   ];
 
+  /* ---------- UI ---------- */
   return (
     <div>
       <Button
         type="primary"
-        onClick={() => setOpenModal(true)}
+        onClick={() => {
+          setEditingCourse(null);
+          form.resetFields();
+          setOpenModal(true);
+        }}
         style={{ marginBottom: 16 }}
       >
         Add Course
       </Button>
 
       <Table
-        dataSource={Array.isArray(data?.data) ? data.data : []}
+        dataSource={data ?? []}
         columns={columns}
         rowKey="_id"
         loading={isLoading}
@@ -102,30 +147,34 @@ const CoursePage: React.FC = () => {
 
       <Modal
         open={openModal}
-        title="Create Course"
-        onCancel={() => setOpenModal(false)}
+        title={editingCourse ? "Update Course" : "Create Course"}
         footer={null}
+        onCancel={() => {
+          setOpenModal(false);
+          setEditingCourse(null);
+          form.resetFields();
+        }}
       >
-        <Form form={form} layout="vertical" onFinish={onCreateFormSubmit}>
+        <Form form={form} layout="vertical" onFinish={onFormSubmit}>
           <Form.Item
             label="Title"
             name="title"
-            rules={[{ required: true, message: 'Title is required' }]}
+            rules={[{ required: true, message: "Title is required" }]}
           >
-            <Input placeholder="Enter course title" />
+            <Input />
           </Form.Item>
 
           <Form.Item
             label="Duration"
             name="duration"
-            rules={[{ required: true, message: 'Duration is required' }]}
+            rules={[{ required: true, message: "Duration is required" }]}
           >
-            <Input placeholder="Enter course duration" />
+            <Input />
           </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" block>
-              Submit
+              {editingCourse ? "Update" : "Create"}
             </Button>
           </Form.Item>
         </Form>
@@ -135,4 +184,3 @@ const CoursePage: React.FC = () => {
 };
 
 export default CoursePage;
-
