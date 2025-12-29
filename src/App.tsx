@@ -12,6 +12,7 @@ function App() {
         <Route path="/" element={<Navigate to="/dashboard" />} />
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route path="course" element={<CoursePage />} />
+          
         </Route>
       </Routes>
     </QueryClientProvider>

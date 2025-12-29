@@ -57,21 +57,21 @@ export const deleteCourse = async (
 /* -------------------- React Query Hooks -------------------- */
 
 export const useCreateCourse = () => {
-  return useMutation<AxiosResponse<Course>, unknown, CreateCoursePayload>({
+  return useMutation({
     mutationKey: ["createCourse"],
     mutationFn: createCourse,
   });
 };
 
 export const useUpdateCourse = () => {
-  return useMutation<AxiosResponse<Course>, unknown, UpdateCoursePayload>({
+  return useMutation({
     mutationKey: ["updateCourse"],
     mutationFn: updateCourse,
   });
 };
 
 export const useDeleteCourse = () => {
-  return useMutation<AxiosResponse<{ message: string }>, unknown, string>({
+  return useMutation({
     mutationKey: ["deleteCourse"],
     mutationFn: deleteCourse,
   });
