@@ -17,13 +17,9 @@ const DashboardLayout: React.FC = () => {
   } = theme.useToken()
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ minHeight: "100vh" }}>
       {/* 🔔 Toast */}
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        theme="dark"
-      />
+      <ToastContainer position="top-right" autoClose={5000} theme="dark" />
 
       {/* 🟦 Sidebar */}
       <Sider trigger={null} collapsible collapsed={collapsed}>
@@ -34,11 +30,15 @@ const DashboardLayout: React.FC = () => {
         <Menu
           theme="dark"
           mode="inline"
-          defaultSelectedKeys={['1']}
+          defaultSelectedKeys={["course"]}
           items={[
             {
-              key: '1',
+              key: "course",
               label: <Link to="course">Courses</Link>,
+            },
+            {
+              key: "students",
+              label: <Link to="students">Students</Link>,
             },
           ]}
         />
@@ -58,7 +58,7 @@ const DashboardLayout: React.FC = () => {
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
             onClick={() => setCollapsed(!collapsed)}
             style={{
-              fontSize: '16px',
+              fontSize: "16px",
               width: 64,
               height: 64,
             }}
@@ -68,7 +68,7 @@ const DashboardLayout: React.FC = () => {
         {/* Content */}
         <Content
           style={{
-            margin: '24px 16px',
+            margin: "24px 16px",
             padding: 24,
             minHeight: 280,
             background: colorBgContainer,
@@ -80,7 +80,7 @@ const DashboardLayout: React.FC = () => {
         </Content>
       </Layout>
     </Layout>
-  )
+  );
 }
 
 export default DashboardLayout
