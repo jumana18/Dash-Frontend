@@ -1,60 +1,107 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { axiosInstance } from "../utils/axios";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { AxiosResponse } from "axios";
+import { axiosInstance } from "./axios";
 
-/* ---------------- Types ---------------- */
-export interface Course {
-  _id: string;
-  title: string;
-}
-
+/* -------------------- Types -------------------- */
 export interface Student {
   _id: string;
   name: string;
   email: string;
   phone: string;
-  status: string;
-  course: Course;
+  course: {
+    _id: string;
+    title: string;
+  };
 }
 
 export interface CreateStudentPayload {
   name: string;
   email: string;
   phone: string;
-  status: string;
-  course: string; // can be ObjectId or new course name
+  course: string; // Course ObjectId
 }
 
-/* ---------------- API ---------------- */
-export const createStudent = (data: CreateStudentPayload) =>
-  axiosInstance.post("/students/createstudent", data);
+export interface UpdateStudentPayload {
+  studentId: string;
+  studentData: CreateStudentPayload;
+}
 
+/* -------------------- API Functions -------------------- */
+
+// Get all students
 export const getAllStudents = async (): Promise<Student[]> => {
-  const res = await axiosInstance.get("/students/getstudents");
-  return res.data.students;
+  const res = await axiosInstance.get(
+    "/students/getstudents"
+  );
+  return res.data ?? []; // never undefined
 };
 
-export const getAllCourses = async (): Promise<Course[]> => {
-  const res = await axiosInstance.get("/courses/getcourses");
-  return res.data.courses;
+
+
+// Create student
+export const createStudent = async (studentData: CreateStudentPayload) => {
+  const res = await axiosInstance.post("/students/createstudent",studentData);
+  return res.data;
 };
 
-/* ---------------- Hooks ---------------- */
+// Update student
+export const updateStudent = async ({
+  studentId,
+  studentData,
+}: UpdateStudentPayload): Promise<Student> => {
+  const res: AxiosResponse<Student> = await axiosInstance.put(
+    `/students/updatestudent/${studentId}`,
+    studentData
+  );
+  return res.data;
+};
+
+// Delete student
+export const deleteStudent = async (
+  studentId: string
+): Promise<{ message: string }> => {
+  const res: AxiosResponse<{ message: string }> = await axiosInstance.delete(
+    `/students/deletestudent/${studentId}`
+  );
+  return res.data;
+};
+
+/* -------------------- React Query Hooks -------------------- */
+
+// Get all students
+export const useGetStudents = () => {
+  return useQuery({
+    queryKey: ["students"],
+    queryFn: getAllStudents,
+    placeholderData: [], // safe default
+  });
+};
+// Create student
 export const useCreateStudent = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createStudent,
-    onSuccess: () => queryClient.invalidateQueries(["students"]),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
   });
 };
 
-export const useGetStudents = () =>
-  useQuery({
-    queryKey: ["students"],
-    queryFn: getAllStudents,
+// Update student
+export const useUpdateStudent = () => {
+  return useMutation({
+    mutationKey:['createStudent'],
+    mutationFn: updateStudent,
   });
+};
 
-export const useGetCourses = () =>
-  useQuery({
-    queryKey: ["courses"],
-    queryFn: getAllCourses,
+// Delete student
+export const useDeleteStudent = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteStudent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
   });
+};

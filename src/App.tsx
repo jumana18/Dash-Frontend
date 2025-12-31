@@ -1,25 +1,81 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import DashboardLayout from "./components/DashboardLayout";
-import CoursePage from "./components/CoursePage";
-import Students from "./utils/studentAPI";   // 👈 add this
+import { useState } from "react";
+import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
+import { Button, Layout, Menu, theme } from "antd";
+import { Link, Outlet } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 
-const queryClient = new QueryClient();
-
+const { Header, Sider, Content } = Layout;
 function App() {
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Routes>
-        {/* Redirect root to dashboard */}
-        <Route path="/" element={<Navigate to="/dashboard" />} />
+  const [collapsed, setCollapsed] = useState<boolean>(false);
 
-        {/* Dashboard layout */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route path="course" element={<CoursePage />} />
-          <Route path="students" element={<Students />} />   {/* 👈 NEW */}
-        </Route>
-      </Routes>
-    </QueryClientProvider>
+  const {
+    token: { colorBgContainer, borderRadiusLG },
+  } = theme.useToken();
+
+  return (
+    <Layout style={{ minHeight: "100vh" }}>
+      {/* 🔔 Toast */}
+      <ToastContainer position="top-right" autoClose={5000} theme="dark" />
+
+      {/* 🟦 Sidebar */}
+      <Sider trigger={null} collapsible collapsed={collapsed}>
+        <div className="h-16 flex items-center justify-center text-white font-bold">
+          ADMIN
+        </div>
+
+        <Menu
+          theme="dark"
+          mode="inline"
+          defaultSelectedKeys={["course"]}
+          items={[
+            {
+              key: "course",
+              label: <Link to="">Courses</Link>,
+            },
+            {
+              key: "student",
+              label: <Link to="student">Student</Link>, // ✅ fixed
+            },
+          ]}
+        />
+      </Sider>
+
+      {/* 🟨 Main Layout */}
+      <Layout>
+        {/* Header */}
+        <Header
+          style={{
+            padding: 0,
+            background: colorBgContainer,
+          }}
+        >
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              fontSize: "16px",
+              width: 64,
+              height: 64,
+            }}
+          />
+        </Header>
+
+        {/* Content */}
+        <Content
+          style={{
+            margin: "24px 16px",
+            padding: 24,
+            minHeight: 280,
+            background: colorBgContainer,
+            borderRadius: borderRadiusLG,
+          }}
+        >
+          {/* 👇 Child pages render here */}
+          <Outlet />
+        </Content>
+      </Layout>
+    </Layout>
   );
 }
 

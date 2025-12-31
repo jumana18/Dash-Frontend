@@ -37,8 +37,8 @@ const DashboardLayout: React.FC = () => {
               label: <Link to="course">Courses</Link>,
             },
             {
-              key: "students",
-              label: <Link to="students">Students</Link>,
+              key: "student",
+              label: <Link to="student">Student</Link>, // ✅ fixed
             },
           ]}
         />
