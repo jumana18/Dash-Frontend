@@ -19,6 +19,7 @@ export interface CreateStudentPayload {
   email: string;
   phone: string;
   course: string; // Course ObjectId
+  image:any
 }
 
 export interface UpdateStudentPayload {
@@ -39,8 +40,12 @@ export const getAllStudents = async (): Promise<Student[]> => {
 
 
 // Create student
-export const createStudent = async (studentData: CreateStudentPayload) => {
-  const res = await axiosInstance.post("/students/createstudent",studentData);
+export const createStudent = async (studentData: FormData) => {
+  const res = await axiosInstance.post("/students/createstudent", studentData, {
+    headers: {
+      "Content-Type": "multipart/formdata",
+    },
+  });
   return res.data;
 };
 

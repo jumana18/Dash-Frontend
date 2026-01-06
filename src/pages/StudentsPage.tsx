@@ -7,9 +7,11 @@ import {
   Select,
   Table,
   Popconfirm,
+  Upload,
 } from "antd";
+import { UploadOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   getAllStudents,
@@ -20,6 +22,7 @@ import { getAllCourses } from "../utils/courseAPI";
 
 function StudentsPage() {
   const [addModal, setAddModal] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
   const [form] = Form.useForm();
 
   const { data, refetch } = useQuery({
@@ -35,44 +38,31 @@ function StudentsPage() {
   const { mutate: createStudent } = useCreateStudent();
   const { mutate: deleteStudent } = useDeleteStudent();
 
-  const columns: ColumnsType = [
+  const columns: ColumnsType<any> = [
     {
-      title: "Id",
-      dataIndex: "_id",
-      key: "id",
+      title: "Image",
+      dataIndex: "image",
+      render: (img) =>
+        img ? (
+          <img
+            src={`http://localhost:3000${img}`}
+            width={40}
+            height={40}
+            style={{ borderRadius: 6, objectFit: "cover" }}
+          />
+        ) : (
+          "No Image"
+        ),
     },
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-    },
-
-    {
-      title: "Email",
-      dataIndex: "email",
-      key: "email",
-    },
-
-    {
-      title: "Phone",
-      dataIndex: "phone",
-      key: "phone",
-    },
-    {
-      title: "Course",
-      dataIndex: ["course", "title"],
-      key: "course",
-    },
-
+    { title: "Name", dataIndex: "name" },
+    { title: "Email", dataIndex: "email" },
+    { title: "Phone", dataIndex: "phone" },
+    { title: "Course", dataIndex: ["course", "title"] },
     {
       title: "Action",
-      key: "action",
-      render: (_, record: any) => (
+      render: (_, record) => (
         <Popconfirm
-          title="Delete Student"
-          description="Are you sure you want to delete this student?"
-          okText="Yes"
-          cancelText="No"
+          title="Delete Student?"
           onConfirm={() => handleDelete(record._id)}
         >
           <Button danger size="small">
@@ -84,25 +74,41 @@ function StudentsPage() {
   ];
 
   const handleSubmit = (values: any) => {
-    console.log({ values });
+    const formData = new FormData();
 
-    createStudent(values, {
+    formData.append("name", values.name);
+    formData.append("email", values.email);
+    formData.append("phone", values.phone);
+    formData.append("course", values.course);
+   
+    console.log({file});
+    
+
+    if (file) {
+      formData.append("image", file); // must be "image"
+    }
+
+    createStudent(formData, {
       onSuccess() {
+        message.success("Student created");
         form.resetFields();
+        setFile(null);
         refetch();
         setAddModal(false);
       },
       onError() {
-        message.error("faild");
+        message.error("Create failed");
       },
     });
   };
+  
+  console.log("hsgrvfgvber",FormData);
+  
 
-  // Delete Student
   const handleDelete = (id: string) => {
     deleteStudent(id, {
       onSuccess() {
-        message.success("Student deleted");
+        message.success("Deleted");
         refetch();
       },
       onError() {
@@ -113,72 +119,59 @@ function StudentsPage() {
 
   return (
     <>
-      <div className="w-full flex justify-end items-center">
-        <Button onClick={() => setAddModal(true)}>Add</Button>
+      <div className="w-full flex justify-end">
+        <Button onClick={() => setAddModal(true)}>Add Student</Button>
       </div>
-      <div>
-        <Table columns={columns} className="shadow-md" dataSource={data} />
-      </div>
+
+      <Table columns={columns} dataSource={data} rowKey="_id" />
 
       <Modal
         open={addModal}
         onCancel={() => setAddModal(false)}
         footer={null}
-        title={"Create Student"}
+        title="Create Student"
       >
         <Form layout="vertical" onFinish={handleSubmit} form={form}>
-          <Form.Item
-            label="Name"
-            name={"name"}
-            rules={[{ required: true, message: "Name is required" }]}
-          >
-            <Input placeholder="enter name" />
+          <Form.Item label="Name" name="name" rules={[{ required: true }]}>
+            <Input />
           </Form.Item>
-          <Form.Item
-            label="Email"
-            name={"email"}
-            rules={[
-              { required: true, message: "email is required" },
-              {
-                pattern: /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$/,
-                message: "enter valid email",
-              },
-            ]}
-          >
-            <Input placeholder="enter email" />
+
+          <Form.Item label="Email" name="email" rules={[{ required: true }]}>
+            <Input />
           </Form.Item>
-          <Form.Item
-            label="Phone"
-            name={"phone"}
-            rules={[
-              { required: true, message: "phone is required" },
-              { min: 10, message: "10 digits required" },
-              { max: 10, message: "10 digits maximmum" },
-            ]}
-          >
-            <Input placeholder="enter phone number" type="number" />
+
+          <Form.Item label="Phone" name="phone" rules={[{ required: true }]}>
+            <Input />
           </Form.Item>
-          <Form.Item
-            label="Courses"
-            name={"course"}
-            rules={[{ required: true, message: "Select course" }]}
-          >
+
+          <Form.Item label="Course" name="course" rules={[{ required: true }]}>
             <Select
-              placeholder={"select course"}
+              placeholder="Select course"
               options={
-                courseData &&
-                courseData.map((course) => ({
-                  label: course.title, // what user sees
-                  value: course._id, // the actual value sent in the form
-                }))
+                courseData?.map((c) => ({
+                  label: c.title,
+                  value: c._id,
+                })) || []
               }
             />
           </Form.Item>
-          <Form.Item>
-            <Button htmlType="submit" type="primary" className="w-full">
-              Submit
-            </Button>
+
+          <Form.Item label="Student Image">
+            <Upload
+              beforeUpload={(file) => {
+                setFile(file);
+                return false; // stop auto upload
+              }}
+              maxCount={1}
+              accept="image/*"
+            >
+              <Button icon={<UploadOutlined />}>Select Image</Button>
+            </Upload>
           </Form.Item>
+
+          <Button htmlType="submit" type="primary" block>
+            Submit
+          </Button>
         </Form>
       </Modal>
     </>
