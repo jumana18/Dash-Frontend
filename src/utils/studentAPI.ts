@@ -53,13 +53,22 @@ export const createStudent = async (studentData: FormData) => {
 export const updateStudent = async ({
   studentId,
   studentData,
-}: UpdateStudentPayload): Promise<Student> => {
-  const res: AxiosResponse<Student> = await axiosInstance.put(
+}: {
+  studentId: string;
+  studentData: FormData;
+}) => {
+  const res = await axiosInstance.put(
     `/students/updatestudent/${studentId}`,
-    studentData
+    studentData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
   );
   return res.data;
 };
+
 
 // Delete student
 export const deleteStudent = async (
@@ -94,9 +103,13 @@ export const useCreateStudent = () => {
 
 // Update student
 export const useUpdateStudent = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationKey:['createStudent'],
     mutationFn: updateStudent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
   });
 };
 
