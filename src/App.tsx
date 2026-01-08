@@ -3,6 +3,7 @@ import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { Link, Outlet } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
+import { BookOutlined, UserAddOutlined, TeamOutlined } from "@ant-design/icons";
 
 const { Header, Sider, Content } = Layout;
 function App() {
@@ -30,12 +31,20 @@ function App() {
           items={[
             {
               key: "course",
+              icon:<BookOutlined />,
               label: <Link to="">Courses</Link>,
             },
             {
               key: "student",
+              icon:<UserAddOutlined />,
               label: <Link to="student">Student</Link>, // ✅ fixed
             },
+            {
+                key: "teacher",
+                icon:<TeamOutlined />,
+                label: <Link to="teacher">Teacher</Link>
+            },
+
           ]}
         />
       </Sider>

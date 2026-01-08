@@ -6,7 +6,7 @@ import './index.css'
 import CoursePage from './components/CoursePage'
 import StudentsPage from './pages/StudentsPage'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-
+import TeacherPage from './pages/TeacherPage'
 
 
 
@@ -22,6 +22,11 @@ const router = createBrowserRouter([
       {
         path:'/student',
         element:<StudentsPage/>
+      },
+      
+      {
+           path:'/teacher',
+           element:<TeacherPage/>
       },
     ]
   },

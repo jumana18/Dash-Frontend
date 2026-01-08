@@ -1,25 +1,11 @@
-import {
-  Button,
-  Form,
-  Input,
-  message,
-  Modal,
-  Select,
-  Table,
-  Popconfirm,
-  Upload,
-} from "antd";
-import { BgColorsOutlined, UploadOutlined } from "@ant-design/icons";
+import {Button,Form,Input,message,Modal,Select,Table,Popconfirm,Upload,} from "antd";
+import {  UploadOutlined } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import {
-  getAllStudents,
-  useCreateStudent,
-  useDeleteStudent,
-} from "../utils/studentAPI";
+import { getAllStudents, useCreateStudent,useDeleteStudent, useUpdateStudent,} from "../utils/studentAPI";
 import { getAllCourses } from "../utils/courseAPI";
-import { useUpdateStudent } from "../utils/studentAPI";
+
 
 
 function StudentsPage() {
